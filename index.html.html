@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>臺東縣政府餐敘出席調查</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a18;
+    --ink-light: #5a5a54;
+    --ink-faint: #9a9a90;
+    --paper: #faf9f6;
+    --paper-warm: #f3f1eb;
+    --paper-card: #ffffff;
+    --gold: #b8860b;
+    --gold-light: #f5edd0;
+    --red: #8b1a1a;
+    --green-bg: #e8f4e8;
+    --green-text: #2d5a2d;
+    --border: #dbd8ce;
+    --border-strong: #c8c4b8;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans TC', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+
+  .site-header {
+    background: var(--ink); color: #f0ede4;
+    padding: 2.5rem 2rem 2rem; text-align: center;
+  }
+  .site-header .eyebrow { font-size: 11px; letter-spacing: 0.25em; color: #a09878; margin-bottom: 0.75rem; font-family: 'Noto Serif TC', serif; }
+  .site-header h1 { font-family: 'Noto Serif TC', serif; font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 500; letter-spacing: 0.08em; }
+  .site-header .subtitle { margin-top: 0.6rem; font-size: 13px; color: #7a7060; letter-spacing: 0.04em; }
+  .header-rule { width: 40px; height: 1px; background: var(--gold); margin: 1rem auto 0; }
+
+  .container { max-width: 760px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* NOTICE */
+  .notice {
+    background: var(--gold-light); border: 0.5px solid #c9a84c;
+    border-left: 3px solid var(--gold); border-radius: 2px;
+    padding: 0.9rem 1.1rem; font-size: 13px; color: #5a4010;
+    margin-bottom: 1.75rem; line-height: 1.8;
+  }
+
+  /* FORM CARDS */
+  .dept-card {
+    background: var(--paper-card); border: 0.5px solid var(--border);
+    border-radius: 4px; margin-bottom: 1rem; box-shadow: var(--shadow); overflow: hidden;
+  }
+  .dept-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.85rem 1.25rem; background: var(--paper-warm);
+    border-bottom: 0.5px solid var(--border); cursor: pointer; user-select: none;
+  }
+  .dept-head-left { display: flex; align-items: center; gap: 0.6rem; }
+  .dept-title { font-size: 14px; font-weight: 500; font-family: 'Noto Serif TC', serif; letter-spacing: 0.04em; }
+  .count-badge {
+    font-size: 11px; background: var(--ink); color: #f0ede4;
+    padding: 1px 7px; border-radius: 99px; font-weight: 300;
+  }
+  .count-badge.has-veg { background: var(--green-text); }
+  .count-badge.warn { background: #8b4010; }
+  .chevron { font-size: 12px; color: var(--ink-faint); transition: transform 0.2s; }
+  .dept-card.open .chevron { transform: rotate(180deg); }
+  .dept-body { display: none; padding: 1rem 1.25rem 1.25rem; }
+  .dept-card.open .dept-body { display: block; }
+
+  .col-labels {
+    display: grid; grid-template-columns: 1fr 1fr 90px 28px;
+    gap: 8px; margin-bottom: 6px; padding-bottom: 6px;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 11px; color: var(--ink-faint); letter-spacing: 0.04em;
+  }
+  .person-row {
+    display: grid; grid-template-columns: 1fr 1fr 90px 28px;
+    gap: 8px; align-items: center; margin-bottom: 6px;
+  }
+  .person-row input, .person-row select {
+    width: 100%; padding: 6px 9px;
+    border: 0.5px solid var(--border-strong); border-radius: 2px;
+    font-size: 13px; font-family: 'Noto Sans TC', sans-serif;
+    background: var(--paper); color: var(--ink); transition: border-color 0.15s;
+  }
+  .person-row input:focus, .person-row select:focus { outline: none; border-color: var(--ink); background: #fff; }
+  .person-row select.is-veg { border-color: #5a8a5a; background: var(--green-bg); color: var(--green-text); }
+  .btn-remove {
+    width: 26px; height: 26px; border: 0.5px solid var(--border-strong);
+    border-radius: 2px; background: none; color: var(--ink-faint);
+    cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;
+  }
+  .btn-remove:hover { border-color: var(--red); color: var(--red); background: #fff0f0; }
+  .btn-add-person {
+    margin-top: 8px; font-size: 12px; color: var(--ink-light); background: none;
+    border: 0.5px dashed var(--border-strong); border-radius: 2px;
+    padding: 5px 12px; cursor: pointer; letter-spacing: 0.03em;
+  }
+  .btn-add-person:hover { border-color: var(--ink); color: var(--ink); background: var(--paper-warm); }
+
+  .submit-wrap { text-align: center; margin: 2rem 0 0; }
+  .btn-submit {
+    padding: 0.9rem 3rem; font-size: 15px;
+    font-family: 'Noto Serif TC', serif; letter-spacing: 0.1em;
+    background: var(--ink); color: #f0ede4; border: none; border-radius: 2px; cursor: pointer;
+  }
+  .btn-submit:hover { opacity: 0.82; }
+
+  /* THANK YOU PAGE */
+  .thankyou-wrap {
+    text-align: center; padding: 4rem 2rem;
+    background: var(--paper-card); border: 0.5px solid var(--border);
+    border-radius: 4px; box-shadow: var(--shadow);
+  }
+  .thankyou-icon { font-size: 2.5rem; margin-bottom: 1.25rem; }
+  .thankyou-title {
+    font-family: 'Noto Serif TC', serif; font-size: 1.5rem;
+    font-weight: 500; letter-spacing: 0.08em; margin-bottom: 1rem;
+  }
+  .thankyou-body { font-size: 14px; color: var(--ink-light); line-height: 2; }
+  .thankyou-highlight {
+    display: inline-block; margin-top: 1.25rem;
+    background: var(--gold-light); border: 0.5px solid #c9a84c;
+    border-radius: 2px; padding: 0.6rem 1.5rem;
+    font-size: 15px; font-family: 'Noto Serif TC', serif;
+    letter-spacing: 0.06em; color: #5a4010;
+  }
+  .thankyou-rule { width: 30px; height: 1px; background: var(--gold); margin: 1.5rem auto; }
+
+  /* ADMIN LOGIN */
+  .login-wrap {
+    max-width: 360px; margin: 0 auto; padding: 2rem 0;
+    text-align: center;
+  }
+  .login-title { font-family: 'Noto Serif TC', serif; font-size: 16px; font-weight: 500; letter-spacing: 0.06em; margin-bottom: 1.5rem; }
+  .login-field {
+    display: flex; gap: 8px; margin-bottom: 0.5rem;
+  }
+  .login-field input {
+    flex: 1; padding: 8px 12px;
+    border: 0.5px solid var(--border-strong); border-radius: 2px;
+    font-size: 14px; font-family: 'Noto Sans TC', sans-serif;
+    background: var(--paper); color: var(--ink);
+  }
+  .login-field input:focus { outline: none; border-color: var(--ink); }
+  .btn-login {
+    padding: 8px 20px; font-size: 13px;
+    background: var(--ink); color: #f0ede4;
+    border: none; border-radius: 2px; cursor: pointer; white-space: nowrap;
+  }
+  .login-err { font-size: 12px; color: var(--red); margin-top: 6px; min-height: 18px; }
+  .login-hint { font-size: 11px; color: var(--ink-faint); margin-top: 1rem; }
+
+  /* SEATING */
+  .summary-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 1.75rem; }
+  .stat-card { background: var(--paper-card); border: 0.5px solid var(--border); border-radius: 4px; padding: 0.9rem 1rem; box-shadow: var(--shadow); }
+  .stat-label { font-size: 11px; color: var(--ink-faint); letter-spacing: 0.06em; margin-bottom: 5px; }
+  .stat-val { font-size: 24px; font-weight: 400; font-family: 'Noto Serif TC', serif; }
+  .stat-card.highlight .stat-val { color: var(--green-text); }
+
+  .section-divider { display: flex; align-items: center; gap: 0.75rem; margin: 1.75rem 0 1rem; }
+  .section-divider span { font-size: 11px; letter-spacing: 0.18em; color: var(--ink-faint); white-space: nowrap; font-family: 'Noto Serif TC', serif; }
+  .section-divider hr { flex: 1; border: none; border-top: 0.5px solid var(--border); }
+
+  .table-card { background: var(--paper-card); border: 0.5px solid var(--border); border-radius: 4px; margin-bottom: 0.85rem; box-shadow: var(--shadow); overflow: hidden; }
+  .table-head { display: flex; align-items: center; gap: 10px; padding: 0.7rem 1.25rem; background: var(--paper-warm); border-bottom: 0.5px solid var(--border); }
+  .table-num { font-family: 'Noto Serif TC', serif; font-size: 14px; font-weight: 500; }
+  .type-pill { font-size: 10px; letter-spacing: 0.06em; padding: 2px 8px; border-radius: 99px; }
+  .pill-exec { background: #1a1a18; color: #e8e0cc; }
+  .pill-staff { background: #e8e4d8; color: #5a5040; }
+  .pill-veg-table { background: var(--green-bg); color: var(--green-text); border: 0.5px solid #7ab07a; }
+  .table-count { font-size: 12px; color: var(--ink-faint); margin-left: auto; }
+
+  .seat-table { width: 100%; border-collapse: collapse; }
+  .seat-table th { font-size: 10px; letter-spacing: 0.08em; color: var(--ink-faint); padding: 6px 1.25rem; text-align: left; font-weight: 400; border-bottom: 0.5px solid var(--border); }
+  .seat-table td { padding: 7px 1.25rem; font-size: 13px; border-bottom: 0.5px solid var(--border); }
+  .seat-table tr:last-child td { border-bottom: none; }
+  .seat-table tr:hover td { background: var(--paper-warm); }
+  .seat-num-cell { color: var(--ink-faint); font-size: 12px; width: 2rem; }
+  .veg-row td { background: #f4fbf4; }
+  .veg-row:hover td { background: #ecf7ec !important; }
+  .veg-tag { display: inline-block; font-size: 10px; background: var(--green-bg); color: var(--green-text); border: 0.5px solid #7ab07a; padding: 1px 6px; border-radius: 99px; }
+  .meat-tag { font-size: 10px; color: var(--ink-faint); }
+
+  .seating-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .page-title { font-family: 'Noto Serif TC', serif; font-size: 16px; font-weight: 500; letter-spacing: 0.06em; }
+  .btn-export {
+    font-size: 12px; letter-spacing: 0.05em; padding: 6px 14px;
+    border: 0.5px solid var(--border-strong); border-radius: 2px;
+    background: none; color: var(--ink-light); cursor: pointer; font-family: 'Noto Sans TC', sans-serif;
+  }
+  .btn-export:hover { border-color: var(--ink); color: var(--ink); background: var(--paper-warm); }
+  .btn-logout {
+    font-size: 12px; padding: 6px 12px; border: 0.5px solid var(--border); border-radius: 2px;
+    background: none; color: var(--ink-faint); cursor: pointer; margin-right: 8px;
+  }
+  .btn-logout:hover { color: var(--ink-light); }
+  .empty { text-align: center; padding: 3rem; color: var(--ink-faint); font-size: 14px; }
+
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: #f0ede4; padding: 0.6rem 1.4rem; border-radius: 2px;
+    font-size: 13px; letter-spacing: 0.04em; opacity: 0; transition: opacity 0.25s;
+    pointer-events: none; z-index: 99; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  @media (max-width: 600px) {
+    .summary-grid { grid-template-columns: repeat(2,1fr); }
+    .col-labels, .person-row { grid-template-columns: 1fr 1fr 72px 26px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <p class="eyebrow">臺東縣政府</p>
+  <h1>餐敘出席人員調查</h1>
+  <p class="subtitle">請各單位填寫出席人員資料後送出</p>
+  <div class="header-rule"></div>
+</header>
+
+<div class="container">
+
+  <!-- PAGE: FORM -->
+  <div class="page active" id="page-form">
+    <div class="notice">
+      ・各單位<strong>請至少派 3 名人員參與</strong>，煩請填妥姓名、職稱及餐食偏好。<br>
+      ・餐食請選擇「葷食」或「素食」，以利座位安排。<br>
+      ・填妥後請點選下方按鈕送出，謝謝配合。
+    </div>
+    <div id="form-container"></div>
+    <div class="submit-wrap">
+      <button class="btn-submit" onclick="submitForm()">確認送出</button>
+    </div>
+  </div>
+
+  <!-- PAGE: THANK YOU -->
+  <div class="page" id="page-thankyou">
+    <div class="thankyou-wrap">
+      <div class="thankyou-icon">🙏</div>
+      <div class="thankyou-title">感謝您的回覆</div>
+      <div class="thankyou-rule"></div>
+      <div class="thankyou-body">
+        敬請於活動當天準時出席<br>
+        期待與各位同仁相聚
+      </div>
+      <div class="thankyou-highlight">
+        6 月 5 日（五）中午<br>桂田飯店 B1 宴會廳
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: ADMIN LOGIN -->
+  <div class="page" id="page-login">
+    <div class="login-wrap">
+      <div class="login-title">管理者登入</div>
+      <div class="login-field">
+        <input type="password" id="pw-input" placeholder="請輸入密碼"
+          onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="btn-login" onclick="doLogin()">進入</button>
+      </div>
+      <div class="login-err" id="login-err"></div>
+      <div class="login-hint">僅授權人員可查看桌次分配表</div>
+    </div>
+  </div>
+
+  <!-- PAGE: SEATING -->
+  <div class="page" id="page-seating">
+    <div class="seating-toolbar">
+      <span class="page-title">桌次分配表</span>
+      <div>
+        <button class="btn-logout" onclick="logout()">登出</button>
+        <button class="btn-export" onclick="exportCSV()">匯出 CSV</button>
+      </div>
+    </div>
+    <div class="summary-grid" id="summary-grid"></div>
+    <div id="seating-container"><div class="empty">尚未有報名資料</div></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  ★ 請在此設定管理者密碼 ★
+// ═══════════════════════════════════════════
+const ADMIN_PASSWORD = 'taitung2025';
+// ═══════════════════════════════════════════
+
+const DEPTS = [
+  '民政處','財政及經濟發展處','建設處','教育處','農業處',
+  '地政處','國際發展及計畫處','主計處','政風處','社會處',
+  '原住民族行政處','文化處','觀光發展處','交通及養護工程處',
+  '環保局','警察局','消防局','衛生局','稅務局'
+];
+const EXEC_KEYWORDS = ['處長','局長','副處長','副局長','參議','秘書'];
+const TABLE_SIZE = 10;
+const VEG_THRESHOLD = 5;
+
+let formData = {};
+DEPTS.forEach(d => { formData[d] = [mkRow()]; });
+
+let adminUnlocked = false;
+let storedTables = null;
+let storedAll = null;
+
+function mkRow() { return { name: '', title: '', diet: '葷' }; }
+function isExec(t) { return EXEC_KEYWORDS.some(k => t.includes(k)); }
+
+/* ── PAGES ── */
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+}
+
+/* ── FORM RENDER ── */
+function renderForm() {
+  const c = document.getElementById('form-container');
+  c.innerHTML = '';
+  DEPTS.forEach(dept => {
+    const rows = formData[dept];
+    const filled = rows.filter(r => r.name.trim()).length;
+    const hasVeg = rows.some(r => r.diet === '素' && r.name.trim());
+    const warn = filled > 0 && filled < 3;
+
+    const card = document.createElement('div');
+    card.className = 'dept-card';
+    card.dataset.dept = dept;
+
+    let badgeClass = 'count-badge';
+    let badgeText = filled + ' 人';
+    if (hasVeg) { badgeClass += ' has-veg'; badgeText += ' · 含素食'; }
+    if (warn) { badgeClass = 'count-badge warn'; badgeText = filled + ' 人（建議至少3人）'; }
+
+    card.innerHTML = `
+      <div class="dept-head" onclick="toggleCard('${esc(dept)}')">
+        <div class="dept-head-left">
+          <span class="dept-title">${dept}</span>
+          <span class="${badgeClass}" id="badge-${escId(dept)}">${badgeText}</span>
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="dept-body">
+        <div class="col-labels"><span>姓名</span><span>職稱</span><span>餐食</span><span></span></div>
+        <div class="rows-wrap" id="rows-${escId(dept)}"></div>
+        <button class="btn-add-person" onclick="addRow('${esc(dept)}')">＋ 新增人員</button>
+      </div>`;
+    c.appendChild(card);
+    renderRows(dept);
+  });
+}
+
+function renderRows(dept) {
+  const wrap = document.getElementById('rows-' + escId(dept));
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  formData[dept].forEach((r, i) => {
+    const div = document.createElement('div');
+    div.className = 'person-row';
+    div.innerHTML = `
+      <input type="text" placeholder="姓名" value="${esc(r.name)}"
+        oninput="setField('${esc(dept)}',${i},'name',this.value)">
+      <input type="text" placeholder="職稱" value="${esc(r.title)}"
+        oninput="setField('${esc(dept)}',${i},'title',this.value)">
+      <select class="${r.diet==='素'?'is-veg':''}"
+        onchange="setField('${esc(dept)}',${i},'diet',this.value);this.className=this.value==='素'?'is-veg':''">
+        <option value="葷" ${r.diet==='葷'?'selected':''}>葷食</option>
+        <option value="素" ${r.diet==='素'?'selected':''}>素食</option>
+      </select>
+      <button class="btn-remove" onclick="removeRow('${esc(dept)}',${i})">×</button>`;
+    wrap.appendChild(div);
+  });
+  updateBadge(dept);
+}
+
+function setField(dept, i, field, val) {
+  formData[dept][i][field] = val;
+  updateBadge(dept);
+}
+
+function updateBadge(dept) {
+  const rows = formData[dept];
+  const filled = rows.filter(r => r.name.trim()).length;
+  const hasVeg = rows.some(r => r.diet === '素' && r.name.trim());
+  const warn = filled > 0 && filled < 3;
+  const badge = document.getElementById('badge-' + escId(dept));
+  if (!badge) return;
+  let cls = 'count-badge';
+  let txt = filled + ' 人';
+  if (warn) { cls = 'count-badge warn'; txt = filled + ' 人（建議至少3人）'; }
+  else if (hasVeg) { cls = 'count-badge has-veg'; txt += ' · 含素食'; }
+  badge.className = cls;
+  badge.textContent = txt;
+}
+
+function addRow(dept) { formData[dept].push(mkRow()); renderRows(dept); }
+function removeRow(dept, i) {
+  formData[dept].splice(i, 1);
+  if (formData[dept].length === 0) formData[dept].push(mkRow());
+  renderRows(dept);
+}
+function toggleCard(dept) {
+  document.querySelector(`.dept-card[data-dept="${dept}"]`)?.classList.toggle('open');
+}
+
+/* ── SUBMIT → THANK YOU ── */
+function submitForm() {
+  buildSeating();
+  showPage('thankyou');
+}
+
+/* ── ADMIN LOGIN ── */
+// Hidden entrance: add #admin to the URL to see the login form
+function checkHash() {
+  if (location.hash === '#admin') {
+    if (adminUnlocked) { renderSeating(storedTables, storedAll); showPage('seating'); }
+    else showPage('login');
+  }
+}
+window.addEventListener('hashchange', checkHash);
+window.addEventListener('load', checkHash);
+
+function doLogin() {
+  const val = document.getElementById('pw-input').value;
+  const err = document.getElementById('login-err');
+  if (val === ADMIN_PASSWORD) {
+    adminUnlocked = true;
+    err.textContent = '';
+    document.getElementById('pw-input').value = '';
+    if (storedTables) { renderSeating(storedTables, storedAll); showPage('seating'); }
+    else { document.getElementById('seating-container').innerHTML = '<div class="empty">尚未有任何報名資料</div>'; showPage('seating'); }
+  } else {
+    err.textContent = '密碼錯誤，請重新輸入';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+
+function logout() {
+  adminUnlocked = false;
+  location.hash = '';
+  showPage('form');
+  showToast('已登出');
+}
+
+/* ── SEATING LOGIC ── */
+function buildSeating() {
+  const all = [];
+  DEPTS.forEach(dept => {
+    formData[dept].forEach(r => {
+      if (r.name.trim()) {
+        all.push({
+          name: r.name.trim(), title: r.title.trim(), diet: r.diet, dept,
+          exec: isExec(r.title.trim()), veg: r.diet === '素'
+        });
+      }
+    });
+  });
+
+  const vegPeople = all.filter(p => p.veg);
+  const nonVeg    = all.filter(p => !p.veg);
+  const vegTablesNeeded = vegPeople.length >= VEG_THRESHOLD;
+
+  let tables = [];
+  if (vegTablesNeeded) {
+    makeTables(vegPeople.filter(p => p.exec),  'exec',  true).forEach(t => tables.push(t));
+    makeTables(vegPeople.filter(p => !p.exec), 'staff', true).forEach(t => tables.push(t));
+    makeTables(nonVeg.filter(p => p.exec),     'exec',  false).forEach(t => tables.push(t));
+    makeTables(nonVeg.filter(p => !p.exec),    'staff', false).forEach(t => tables.push(t));
+  } else {
+    makeTables(all.filter(p => p.exec),  'exec',  false).forEach(t => tables.push(t));
+    makeTables(all.filter(p => !p.exec), 'staff', false).forEach(t => tables.push(t));
+  }
+
+  // Sort: within each type, veg tables first
+  tables.sort((a, b) => {
+    const tOrder = { exec: 0, staff: 1 };
+    if (tOrder[a.type] !== tOrder[b.type]) return tOrder[a.type] - tOrder[b.type];
+    return (b.vegTable ? 1 : 0) - (a.vegTable ? 1 : 0);
+  });
+
+  storedTables = tables;
+  storedAll = all;
+}
+
+function makeTables(people, type, vegTable) {
+  const out = [];
+  for (let i = 0; i < people.length; i += TABLE_SIZE)
+    out.push({ type, vegTable, people: people.slice(i, i + TABLE_SIZE) });
+  return out;
+}
+
+function renderSeating(tables, all) {
+  if (!tables || !all) return;
+  const vegCount = all.filter(p => p.veg).length;
+  const vegTablesNeeded = vegCount >= VEG_THRESHOLD;
+
+  document.getElementById('summary-grid').innerHTML = `
+    <div class="stat-card"><div class="stat-label">出席人數</div><div class="stat-val">${all.length}</div></div>
+    <div class="stat-card"><div class="stat-label">主管桌</div><div class="stat-val">${tables.filter(t=>t.type==='exec').length}</div></div>
+    <div class="stat-card"><div class="stat-label">非主管桌</div><div class="stat-val">${tables.filter(t=>t.type==='staff').length}</div></div>
+    <div class="stat-card highlight"><div class="stat-label">素食人數</div><div class="stat-val">${vegCount}${vegTablesNeeded?' 🌿':''}</div></div>`;
+
+  const c = document.getElementById('seating-container');
+  if (!tables.length) { c.innerHTML = '<div class="empty">尚未有任何報名資料</div>'; return; }
+
+  c.innerHTML = '';
+  let tableNum = 0, lastType = null, lastVeg = null;
+
+  tables.forEach(t => {
+    if (t.type !== lastType || t.vegTable !== lastVeg) {
+      let label = '';
+      if (t.type==='exec'  && t.vegTable)  label = '主管桌 · 素食席';
+      else if (t.type==='exec')             label = '主管桌';
+      else if (t.type==='staff' && t.vegTable) label = '非主管桌 · 素食席';
+      else                                  label = '非主管桌';
+      c.insertAdjacentHTML('beforeend',
+        `<div class="section-divider"><hr><span>${label}</span><hr></div>`);
+      lastType = t.type; lastVeg = t.vegTable;
+    }
+
+    tableNum++;
+    const pillClass = t.vegTable ? 'type-pill pill-veg-table' : (t.type==='exec' ? 'type-pill pill-exec' : 'type-pill pill-staff');
+    const pillLabel = t.vegTable ? '素食席' : (t.type==='exec' ? '主管席' : '非主管席');
+    const vegInTable = t.people.filter(p => p.veg).length;
+
+    const card = document.createElement('div');
+    card.className = 'table-card';
+    card.innerHTML = `
+      <div class="table-head">
+        <span class="table-num">第 ${tableNum} 桌</span>
+        <span class="${pillClass}">${pillLabel}</span>
+        ${vegInTable > 0 && !t.vegTable ? `<span class="type-pill pill-veg-table">含 ${vegInTable} 位素食</span>` : ''}
+        <span class="table-count">${t.people.length} / ${TABLE_SIZE} 人</span>
+      </div>
+      <table class="seat-table">
+        <thead><tr>
+          <th style="width:2rem">#</th><th>姓名</th><th>單位</th><th>職稱</th><th>餐食</th>
+        </tr></thead>
+        <tbody>${t.people.map((p,si) => `
+          <tr class="${p.veg?'veg-row':''}">
+            <td class="seat-num-cell">${si+1}</td>
+            <td>${p.name}</td>
+            <td style="font-size:12px;color:#7a7060;">${p.dept}</td>
+            <td style="font-size:12px;">${p.title||'—'}</td>
+            <td>${p.veg ? '<span class="veg-tag">素食</span>' : '<span class="meat-tag">葷食</span>'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+    c.appendChild(card);
+  });
+}
+
+/* ── CSV EXPORT ── */
+function exportCSV() {
+  if (!storedTables) { showToast('尚無資料'); return; }
+  const rows = ['\uFEFF桌次,桌別,類型,座位,姓名,單位,職稱,餐食'];
+  let n = 0;
+  storedTables.forEach(t => {
+    n++;
+    const tl = t.type==='exec'?'主管桌':'非主管桌';
+    const vl = t.vegTable?'素食席':'混合';
+    t.people.forEach((p,si) => {
+      rows.push([`第${n}桌`,tl,vl,si+1,`"${p.name}"`,`"${p.dept}"`,`"${p.title||''}"`,p.diet].join(','));
+    });
+  });
+  const blob = new Blob([rows.join('\r\n')], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = '臺東縣政府餐敘桌次表.csv'; a.click();
+  showToast('CSV 已下載');
+}
+
+/* ── HELPERS ── */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+function esc(s) { return (s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+function escId(s) { return (s||'').replace(/[\s&/]/g,'_'); }
+
+renderForm();
+</script>
+</body>
+</html>
